@@ -1,0 +1,1 @@
+python3 -m tf2onnx.convert --saved-model lipgan_savedmodel --output lipgan.onnx

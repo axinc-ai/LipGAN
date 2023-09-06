@@ -40,6 +40,11 @@ parser.add_argument('--n_gpu', help='Number of GPUs to use', default=1)
 args = parser.parse_args()
 args.img_size = 96
 
+onnx = False
+if onnx:
+	import ailia
+	ailia_net = ailia.Net(weight="lipgan.onnx")
+
 if args.face.split('.')[1] in ['jpg', 'png', 'jpeg']:
 	args.static = True
 
@@ -194,6 +199,8 @@ def main():
 			model.load_weights(args.checkpoint_path)
 			print ("Model loaded")
 
+			model.save("lipgan_savedmodel")
+
 			#model = keras.models.load_model(args.checkpoint_path)
 
 			frame_h, frame_w = full_frames[0].shape[:-1]
@@ -203,7 +210,16 @@ def main():
 		# expect
 		# normal : bx96x96x6, bx12x35x1
 		# mel : bx96x96x6, bx80x27x1
-		pred = model.predict([img_batch, mel_batch])
+		if onnx:
+			import time
+			start = int(round(time.time() * 1000))
+			#print(img_batch.shape)
+			#print(mel_batch.shape)
+			pred = ailia_net.run([mel_batch, img_batch])[0]
+			end = int(round(time.time() * 1000))
+			print(f'\tailia processing time {end - start} ms')
+		else:
+			pred = model.predict([img_batch, mel_batch])
 		pred = pred * 255
 		
 		for p, f, c in zip(pred, frames, coords):
