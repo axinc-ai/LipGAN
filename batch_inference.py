@@ -6,6 +6,7 @@ from tqdm import tqdm
 
 from keras.callbacks import ModelCheckpoint
 from keras.models import Model
+import keras
 
 parser = argparse.ArgumentParser(description='Code to generate talking face using LipGAN')
 
@@ -193,10 +194,15 @@ def main():
 			model.load_weights(args.checkpoint_path)
 			print ("Model loaded")
 
+			#model = keras.models.load_model(args.checkpoint_path)
+
 			frame_h, frame_w = full_frames[0].shape[:-1]
 			out = cv2.VideoWriter(path.join(args.results_dir, 'result.avi'), 
 									cv2.VideoWriter_fourcc(*'DIVX'), fps, (frame_w, frame_h))
 
+		# expect
+		# normal : bx96x96x6, bx12x35x1
+		# mel : bx96x96x6, bx80x27x1
 		pred = model.predict([img_batch, mel_batch])
 		pred = pred * 255
 		
